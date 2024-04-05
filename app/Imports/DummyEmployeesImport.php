@@ -28,6 +28,12 @@ class DummyEmployeesImport implements ToModel, WithHeadingRow, WithChunkReading,
     public function model(array $row)
     {
         $reqId = $this->requestId;
+        if(empty($row['dob'])){
+            $dob = null;
+        }
+        else{
+            $dob = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject(intval($row['dob']));
+        }
 
         return new DummyEmployee([
             'name' => $row['name'],
@@ -35,7 +41,7 @@ class DummyEmployeesImport implements ToModel, WithHeadingRow, WithChunkReading,
             'mobile' => $row['mobile'],
             'staff_id' => $row['staff_id'],
             'place' => $row['place'],
-            'dob' => \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject(intval($row['dob'])),
+            'dob' => $dob,
             'designation' => $row['designation'],
             'request_id' => $reqId,
         ]);

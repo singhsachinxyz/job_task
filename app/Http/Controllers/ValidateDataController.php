@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DummyEmployeesImport;
+use App\Exports\EmployeesExport;
+use App\Exports\DummyEmployeesExport;
 use App\Jobs\NewJob;
 use Illuminate\Support\Facades\Storage;
 
@@ -24,5 +26,21 @@ class ValidateDataController extends Controller
                                                     ]);
 
         return 'post';
+    }
+
+    public function exportAllEmployees(Request $request){
+        $path = 'excel/all-employees.xlsx';
+        $store = Excel::store(new EmployeesExport, $path, 'public');
+        
+        // return Storage::url($path);
+        return asset('storage/' . $path);
+    }
+
+    public function exportDummyEmployees(Request $request, $id){
+        $path = 'excel/dummy-employees'.$id.'.xlsx';
+        $store = Excel::store(new DummyEmployeesExport($id), $path, 'public');
+        
+        // return Storage::url($path);
+        return asset('storage/' . $path);
     }
 }

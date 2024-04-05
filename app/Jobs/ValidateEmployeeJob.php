@@ -11,6 +11,7 @@ use Illuminate\Bus\Queueable;
 use App\Models\DummyEmployee;
 use App\Models\Employee;
 use Illuminate\Bus\Batchable;
+use \DateTime;
 
 class ValidateEmployeeJob implements ShouldQueue
 {
@@ -35,7 +36,6 @@ class ValidateEmployeeJob implements ShouldQueue
      */
     public function handle(): void
     {
-
         $offset = $this->offset;
         $batchSize = $this->batchSize;
         $requestId = $this->requestId;
@@ -64,52 +64,65 @@ class ValidateEmployeeJob implements ShouldQueue
                 $valid = false;
                 $errors[] = "The email field is invalid";
             }
+            else{
+                $uniqueEmailValidation = $this->uniqueEmployeeValidation('email', $dummyEmployee->email);
+                if(!$uniqueEmailValidation){
+                    $valid = false;
+                    $errors[] = "The email is not unique";
+                }
+            }
             
             $mobileValidation = $this->mobileValidation($dummyEmployee->mobile);
             if(!$mobileValidation){
                 $valid = false;
-                $errors[] = "The mobile field is invalid";
+                $errors[] = "The mobile field should contain exact 10 digits";
+            }
+            else{
+                $uniqueMobileValidation = $this->uniqueEmployeeValidation('mobile', $dummyEmployee->mobile);
+                if(!$uniqueMobileValidation){
+                    $valid = false;
+                    $errors[] = "The mobile is not unique";
+                }
             }
             
             $staffIdValidation = $this->staffIdValidation($dummyEmployee->staff_id);
             if(!$staffIdValidation){
                 $valid = false;
-                $errors[] = "The staff Id field is invalid";
+                $errors[] = "The staff Id field should contain exact 5 digits";
             }
             else{
-                $uniqueStaffIdValidation = $this->uniqueStaffIdValidation($dummyEmployee->staff_id);
+                $uniqueStaffIdValidation = $this->uniqueEmployeeValidation('staff_id', $dummyEmployee->staff_id);
                 if(!$uniqueStaffIdValidation){
                     $valid = false;
                     $errors[] = "The staff Id is not unique";
                 }
             }
-            
 
-            // $validator = Validator::make($dummyEmployee->toArray(), [
-            //     'name' => 'required',
-            //     'email' => 'required|email',
-            //     'mobile' => 'required|numeric|digits:10',
-            //     'staff_id' => 'required',
-            //     'place' => 'required',
-            //     'dob' => 'required|date',
-            //     'designation' => 'required',
-            // ]);
+            $placeValidation = $this->nameValidation($dummyEmployee->place);
+            if(!$placeValidation){
+                $valid = false;
+                $errors[] = "The place field is invalid";
+            }
+
+            $dateValidation = $this->dateValidation($dummyEmployee->dob);
+            if(!$dateValidation){
+                $valid = false;
+                $errors[] = "The dob field is invalid";
+            }
+
+            $designationValidation = $this->nameValidation($dummyEmployee->designation);
+            if(!$designationValidation){
+                $valid = false;
+                $errors[] = "The designation field is invalid";
+            }
 
             if(!$valid){
-                // $errors = $validator->errors()->toArray();
-                // $errorsArray = [];
-                // foreach($errors as $error){
-                //     foreach($error as $e){
-                //         $errorsArray[] = $e;
-                //     }
-                // }
-
                 $errorString = implode(',',$errors);
                 $dummyEmployee->errors = $errorString;
+                $dummyEmployee->is_processed = 0;
                 $dummyEmployee->save();
             }
             else{
-                
                 $employee = new Employee;
                 $employee->name = $dummyEmployee->name;
                 $employee->email = $dummyEmployee->email;
@@ -118,8 +131,10 @@ class ValidateEmployeeJob implements ShouldQueue
                 $employee->place = $dummyEmployee->place;
                 $employee->dob = $dummyEmployee->dob;
                 $employee->designation = $dummyEmployee->designation;
-                
                 $employee->save();
+
+                $dummyEmployee->is_processed = 1;
+                $dummyEmployee->save();
             }
 
         }
@@ -168,18 +183,35 @@ class ValidateEmployeeJob implements ShouldQueue
         }
     }
     
-    public function uniqueStaffIdValidation($staffId){
+    // public function uniqueStaffIdValidation($staffId){
         
-        $checkStaffId = Employee::where('staff_id',$staffId)
-                        ->count();
-        var_dump($checkStaffId);
+    //     $checkStaffId = Employee::where('staff_id',$staffId)
+    //                     ->count();
 
-        if($checkStaffId>0){
+    //     if($checkStaffId>0){
+    //         return false;
+    //     }
+    //     else{
+    //         return true;
+    //     }
+    // }
+    
+    public function uniqueEmployeeValidation($fieldName, $fieldValue){
+        
+        $checkEmployee = Employee::where($fieldName, $fieldValue)
+                        ->count();
+
+        if($checkEmployee>0){
             return false;
         }
         else{
             return true;
         }
+    }
+
+    public function dateValidation($date, $format = 'Y-m-d'){
+        $d = DateTime::createFromFormat($format, $date);
+        return $d && $d->format($format) == $date;
     }
 
 }

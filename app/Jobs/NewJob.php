@@ -38,22 +38,12 @@ class NewJob implements ShouldQueue
     public function handle(): void
     {
         // Excel::import(new DummyEmployeesImport($this->requestId), storage_path('app/' . $this->path));
-
-        // (new DummyEmployeesImport($this->requestId))->queue(storage_path('app/' . $this->path))
-        //                                             ->chain([
-        //                                                 new ValidateEmployeeJob(0, 200, $this->requestId)
-        //                                             ]);
-        // var_dump('import done');
         // request_id
         // count DummyEmployees where request_id //
-        // 
         // init = 0;
 
         $dummyEmployeesCount = DummyEmployee::where('request_id',$this->requestId)->count();
         
-        // $dummyEmployeesCount = count($dummyEmployees);
-
-        // $init = 0;
         $batchSize = 200;
         $batchesToMake = [];
 

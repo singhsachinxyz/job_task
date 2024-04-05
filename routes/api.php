@@ -20,3 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/import-employees', [ValidateDataController::class, 'postExcel'] );
+Route::get('/export-all-employees', [ValidateDataController::class, 'exportAllEmployees'] );
+Route::get('/export-dummy-employees/{id}', [ValidateDataController::class, 'exportDummyEmployees'] );
