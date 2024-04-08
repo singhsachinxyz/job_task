@@ -5,8 +5,10 @@ namespace App\Exports;
 use App\Models\DummyEmployee;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class DummyEmployeesExport implements FromCollection, WithHeadings
+class DummyEmployeesExport implements FromCollection, WithHeadings, WithStrictNullComparison, ShouldAutoSize
 {
 
     protected $id;
@@ -22,7 +24,8 @@ class DummyEmployeesExport implements FromCollection, WithHeadings
     {
         $id = $this->id;
         return DummyEmployee::where('request_id', $id)
-        ->select('name as Name','email as Email','mobile as Mobile','staff_id as Staff Id','place as Place','dob as DOB','designation as Designation','errors as Errors','is_processed as Is Processed')
+        ->select('name as Name','email as Email','mobile as Mobile','staff_id as Staff Id','place as Place',
+        'dob as DOB','designation as Designation','errors as Errors','is_processed as Is Processed')
         ->get();
     }
 
